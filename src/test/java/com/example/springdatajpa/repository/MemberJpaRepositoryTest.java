@@ -51,19 +51,21 @@ class MemberJpaRepositoryTest {
 
         findMember1.setUserName("member!!!!!!!");
 
-//        //리스트 조회 검증
-//        List<Member> all = memberJpaRepository.findAll();
-//        assertThat(all).hasSize(2);
-//
-//        //카운트 검증
-//        long count = memberJpaRepository.count();
-//        assertThat(count).isEqualTo(2);
-//
-//        //삭제 검증
-//        memberJpaRepository.delete(member1);
-//        memberJpaRepository.delete(member2);
-//
-//        long deletedCount = memberJpaRepository.count();
-//        assertThat(deletedCount).isEqualTo(0);
+        //리스트 조회 검증
+        List<Member> all = memberJpaRepository.findAll();
+        assertThat(all).hasSize(2);
+
+        //카운트 검증
+        long count = memberJpaRepository.count();
+        assertThat(count).isEqualTo(2);
+
+        //삭제 검증
+        memberJpaRepository.delete(member1);
+        memberJpaRepository.delete(member2);
+
+        long deletedCount = memberJpaRepository.count();
+        assertThat(deletedCount).isEqualTo(0);
     }
+
+
 }
