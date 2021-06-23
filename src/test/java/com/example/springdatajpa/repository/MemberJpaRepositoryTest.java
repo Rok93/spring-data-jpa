@@ -7,12 +7,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
-@Rollback(false)
 class MemberJpaRepositoryTest {
 
     @Autowired
@@ -81,5 +79,22 @@ class MemberJpaRepositoryTest {
         //then
         assertThat(result.get(0)).isEqualTo(m2);
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void testNamedQuery() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberJpaRepository.save(m1);
+        memberJpaRepository.save(m2);
+
+        //when
+        List<Member> result = memberJpaRepository.findByUserName("AAA");
+
+        //then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).isEqualTo(m1);
+        assertThat(result.get(1)).isEqualTo(m2);
     }
 }

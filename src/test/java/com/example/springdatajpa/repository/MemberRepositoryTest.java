@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
-@Rollback(value = false)
 class MemberRepositoryTest {
 
     @Autowired
@@ -82,5 +81,22 @@ class MemberRepositoryTest {
         //then
         assertThat(result.get(0)).isEqualTo(m2);
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void testNamedQuery() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        //when
+        List<Member> result = memberRepository.findByUserName("AAA");
+
+        //then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).isEqualTo(m1);
+        assertThat(result.get(1)).isEqualTo(m2);
     }
 }
