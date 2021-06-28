@@ -1,14 +1,17 @@
 package com.example.springdatajpa.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.springdatajpa.dto.MemberDto;
 import com.example.springdatajpa.entity.Member;
 import com.example.springdatajpa.entity.Team;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -154,5 +157,103 @@ class MemberRepositoryTest {
         assertThat(userNameList).hasSize(1);
         assertThat(userNameList.get(0).getUserName()).isEqualTo("AAA");
         assertThat(userNameList.get(0).getTeamName()).isEqualTo("teamA");
+    }
+
+    @Test
+    void findUserNames() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        //when
+        List<Member> result = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
+
+        //then
+        assertThat(result.get(0)).isEqualTo(m1);
+        assertThat(result.get(1)).isEqualTo(m2);
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    void returnListType() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        //when
+        List<Member> result = memberRepository.findListByUserName("AAA");
+
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).isEqualTo(m1);
+    }
+
+    @Test
+    void returnType() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        //when
+        Member result = memberRepository.findMemberByUserName("AAA");
+
+        //then
+        assertThat(result).isEqualTo(m1);
+    }
+
+    @Test
+    void returnTypeIfNotExist() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1);
+
+        //when
+        Member result = memberRepository.findMemberByUserName("BBB");
+
+        //then
+        assertThat(result).isNull();
+        //JPA는 결과가 없으면 NotResultException이 발생한다! (getSingleResult()의 결과가 없으면 발생)
+        // 자바 8 이전에는 많은 논쟁(예외를 던진다 or null로 넘긴다)이 있었으나 이제는 Optional 처리하면 된다!
+    }
+
+    @Test
+    void returnTypeIfExistMultipleResults() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1);
+        memberRepository.save(new Member("AAA", 20));
+        memberRepository.save(new Member("AAA", 30));
+
+        //when //then
+        assertThatThrownBy(() -> memberRepository.findMemberByUserName("AAA"))
+            .isExactlyInstanceOf(IncorrectResultSizeDataAccessException.class);
+        // 단건 조회시에 복수개의 데이터가 나오는 경우!
+        // IncorrectResultSizeDataAccessException 예외가 발생한다!
+        // 원래 발생하는 예외는 NonUniqueResultException 지만, SpringData JPA가 Spring Freamework 예외로 변경한다.
+        // 왜냐하면 Repository 기술은 JPA기술이 될 수도 있고, 혹은 Mongo DB가 될 수도 있고 등등 다른 기술이 될 수 있다.
+        // 하지만 그것을 사용하는 Service 계층의 클라이언트 코드들은 JPA나 이런데 의존하는게 아니라
+        // 그냥 Spring이 추상화한 예에 의존하면, 다른 기술을 사용하더라도 Spring은 동일한 예외를 발생시킨다!
+        // 결국은 클라이언트 코드를 바꿀 필요가 없다.
+    }
+
+    @Test
+    void returnOptionalType() {
+        //given
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        //when
+        Member result = memberRepository.findOptionalByUserName("AAA").get();
+
+        //then
+        assertThat(result).isEqualTo(m1);
     }
 }

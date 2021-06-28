@@ -2,7 +2,9 @@ package com.example.springdatajpa.repository;
 
 import com.example.springdatajpa.dto.MemberDto;
 import com.example.springdatajpa.entity.Member;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +13,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     List<Member> findByUserNameAndAgeGreaterThan(String userName, int age);
 
-//    @Query(name = "Member.findByUserName")
+    //    @Query(name = "Member.findByUserName")
     List<Member> findByUserName(@Param("userName") String userName);
 
     @Query("select m from Member m where m.userName = :userName and m.age = :age")
@@ -22,4 +24,15 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     @Query("select new com.example.springdatajpa.dto.MemberDto(m.id, m.userName, t.name) from Member m join m.team t")
     List<MemberDto> findMemberDto();
+
+    @Query("select m from Member m where m.userName in :names")
+    List<Member> findByNames(@Param("names") Collection<String> names);
+
+    List<Member> findListByUserName(String userName); // 컬렉션
+
+    Member findMemberByUserName(String userName); // 단건
+
+    Optional<Member> findOptionalByUserName(String userName); // 단건 Optional
 }
+
+
