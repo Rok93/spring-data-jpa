@@ -10,6 +10,7 @@ spring:
       ddl-auto: create
     properties:
       hibernate:
+#        dialect: org.hibernate.dialect.Oracle10Dialect # 특정 DB로 설정을 변경한다
         # show_sql: true
         format_sql: true
 logging:
