@@ -8,6 +8,8 @@ import com.example.springdatajpa.entity.Member;
 import com.example.springdatajpa.entity.Team;
 import java.util.Arrays;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -30,6 +30,9 @@ class MemberRepositoryTest {
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @PersistenceContext
+    EntityManager em; // 참고: 같은 트랜잭션 내에서는 같은 EntityManager를 가진다!
 
     @Test
     void testMember() {
@@ -382,4 +385,25 @@ class MemberRepositoryTest {
         assertThat(page.hasNext()).isTrue();
     }
 
+    @Test
+    void bulkUpdate() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20); // 바로 DB에 업데이트 쿼리를 날려버린다!
+//        em.flush(); // 남아있는 변경되지 않은 내용들을 DB에 반영 (사실 JPQL 실행전에 flush가 동작하기 때문에 불필요하다)
+//        em.clear(); // 영속성 컨텍스트를 모두 날려버린다. (clearAutomatically 옵션 설정으로 대신한다!)
+
+        Member member5 = memberRepository.findByUserName("member5").get(0);
+        //member5의 나이는 몇살일까? 아직 쿼리가 안날아갔기 때문에.... 영속성 컨텍스트의 결과를 가져온다 '40살'일 것이다!
+        System.out.println(member5.getAge());
+
+        //then
+        assertThat(resultCount).isEqualTo(3);
+    }
 }
