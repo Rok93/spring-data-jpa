@@ -5,6 +5,10 @@ import com.example.springdatajpa.entity.Member;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +37,16 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Member findMemberByUserName(String userName); // 단건
 
     Optional<Member> findOptionalByUserName(String userName); // 단건 Optional
+
+    Page<Member> findByAge(int age, Pageable pageable);
+
+    Slice<Member> findSliceByAge(int age, Pageable pageRequest);
+
+    List<Member> findListByAge(int age, Pageable pageable);
+
+    @Query(value = "select m from Member m left join m.team t",
+        countQuery = "select count (m.userName) from Member m")
+    Page<Member> findByAge2(int age, Pageable pageable); // count 쿼리를 분리할 수 있다! (굳이 join 한 녀석을 count 할 필요가 없다!)
 }
 
 

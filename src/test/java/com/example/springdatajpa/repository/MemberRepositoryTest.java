@@ -8,10 +8,16 @@ import com.example.springdatajpa.entity.Member;
 import com.example.springdatajpa.entity.Team;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -256,4 +262,124 @@ class MemberRepositoryTest {
         //then
         assertThat(result).isEqualTo(m1);
     }
+
+    @Test
+    void paging() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+
+        //when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+
+        //then
+        List<Member> contents = page.getContent();
+        long totalElements = page.getTotalElements();
+
+        assertThat(contents).hasSize(3);
+        assertThat(totalElements).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    void pagingBySlice() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+
+        //when
+        Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
+
+        //then
+        List<Member> contents = page.getContent();
+
+        assertThat(contents).hasSize(3);
+//        assertThat(totalElements).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+//        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    void pagingByList() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+
+        //when
+        List<Member> page = memberRepository.findListByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
+
+        //then
+        assertThat(page).hasSize(3);
+
+//        assertThat(contents).hasSize(3);
+//        assertThat(totalElements).isEqualTo(5);
+//        assertThat(page.getNumber()).isEqualTo(0);
+//        assertThat(page.getTotalPages()).isEqualTo(2);
+//        assertThat(page.isFirst()).isTrue();
+//        assertThat(page.hasNext()).isTrue();
+    }
+
+    @DisplayName("count 쿼리를 별도로 분리한 페이징 쿼리")
+    @Test
+    void paging2() {
+        //given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 10));
+        memberRepository.save(new Member("member3", 10));
+        memberRepository.save(new Member("member4", 10));
+        memberRepository.save(new Member("member5", 10));
+
+        int age = 10;
+        int offset = 0;
+        int limit = 3;
+
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+
+        //when
+        Page<Member> page = memberRepository.findByAge2(age, pageRequest);
+
+        //then
+        List<Member> contents = page.getContent();
+        long totalElements = page.getTotalElements();
+
+        assertThat(contents).hasSize(3);
+        assertThat(totalElements).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
 }
