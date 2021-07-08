@@ -406,4 +406,90 @@ class MemberRepositoryTest {
         //then
         assertThat(resultCount).isEqualTo(3);
     }
+
+    @Test
+    void findMemberLazy() {
+        //given
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> members = memberRepository.findAll();
+
+        //then
+        for (Member member : members) {
+            System.out.println("member = " + member.getUserName());
+            System.out.println("member.teamClass = " + member.getTeam().getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
+            System.out.println("member.team = " + member.getTeam().getName()); // N + 1 문제가 발생한다!
+        }
+    }
+
+    @Test
+    void findMemberFetchJoin() {
+        //given
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 10, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> members = memberRepository.findMemberFetchJoin();
+
+        //then
+        for (Member member : members) {
+            System.out.println("member = " + member.getUserName());
+            System.out.println("member.teamClass = " + member.getTeam().getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
+            System.out.println("member.team = " + member.getTeam().getName()); // N + 1 문제가 발생한다!
+        }
+    }
+
+    @Test
+    void queryHint() {
+        //given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = memberRepository.findReadOnlyByUserName("member1");
+        findMember.setUserName("member2"); // DirtyChecking(변경감지) 의해 업데이트 쿼리가 나갈거라 생각했는데,
+
+        //then
+    }
+
+    @Test
+    void lock() {
+        //given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> result = memberRepository.findLockByUserName("member1");
+
+        //then
+    }
 }
