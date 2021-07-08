@@ -496,14 +496,4 @@ class MemberRepositoryTest {
         //then
     }
 
-    @Test
-    void callCustom() {
-        //given
-        List<Member> result = memberRepository.findMemberCustom();
-
-        //when
-
-        //then
-    }
-
 }
