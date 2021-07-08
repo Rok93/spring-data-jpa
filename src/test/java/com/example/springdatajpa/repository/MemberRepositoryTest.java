@@ -32,7 +32,10 @@ class MemberRepositoryTest {
     private TeamRepository teamRepository;
 
     @PersistenceContext
-    EntityManager em; // 참고: 같은 트랜잭션 내에서는 같은 EntityManager를 가진다!
+    private EntityManager em; // 참고: 같은 트랜잭션 내에서는 같은 EntityManager를 가진다!
+
+    @Autowired
+    private MemberQueryRepository memberQueryRepository;
 
     @Test
     void testMember() {
@@ -492,4 +495,15 @@ class MemberRepositoryTest {
 
         //then
     }
+
+    @Test
+    void callCustom() {
+        //given
+        List<Member> result = memberRepository.findMemberCustom();
+
+        //when
+
+        //then
+    }
+
 }
