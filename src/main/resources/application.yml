@@ -13,6 +13,12 @@ spring:
 #        dialect: org.hibernate.dialect.Oracle10Dialect # 특정 DB로 설정을 변경한다
         # show_sql: true
         format_sql: true
+  data:
+    web:
+      pageable:
+        default-page-size: 10 # 글로벌 설정
+        max-page-size: 2000
+        one-indexed-parameters: true
 logging:
   level:
     org.hibernate.SQL: debug

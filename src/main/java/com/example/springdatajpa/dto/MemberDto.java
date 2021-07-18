@@ -1,5 +1,6 @@
 package com.example.springdatajpa.dto;
 
+import com.example.springdatajpa.entity.Member;
 import lombok.Data;
 
 @Data
@@ -13,5 +14,10 @@ public class MemberDto {
         this.id = id;
         this.userName = userName;
         this.teamName = teamName;
+    }
+
+    public MemberDto(Member member) {
+        this.id = member.getId();
+        this.userName = member.getUserName();
     }
 }
