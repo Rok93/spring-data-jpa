@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -523,5 +525,37 @@ class MemberRepositoryTest {
 
         //then
         assertThat(findMembers).hasSize(1);
+    }
+
+    @Test
+    void queryByExample() {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        //Probe
+        Member member = new Member("m1"); //entity 자체가 검색조건이 된다.
+        Team team = new Team("teamA");
+        member.setTeam(team);
+
+        ExampleMatcher matcher = ExampleMatcher.matching() //age primitive type이기 때문에 age = 0 조건이 WHERE절에 추가된다!
+            .withIgnorePaths("age");
+
+        Example<Member> example = Example.of(member, matcher);
+
+        List<Member> result = memberRepository.findAll(example);
+
+        //then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getUserName()).isEqualTo("m1");
     }
 }
