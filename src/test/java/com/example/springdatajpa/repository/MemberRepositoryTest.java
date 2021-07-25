@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -282,7 +283,8 @@ class MemberRepositoryTest {
         int offset = 0;
         int limit = 3;
 
-        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+        PageRequest pageRequest = PageRequest
+            .of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
 
         //when
         Page<Member> page = memberRepository.findByAge(age, pageRequest);
@@ -312,10 +314,12 @@ class MemberRepositoryTest {
         int offset = 0;
         int limit = 3;
 
-        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+        PageRequest pageRequest = PageRequest
+            .of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
 
         //when
-        Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
+        Slice<Member> page = memberRepository
+            .findSliceByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
 
         //then
         List<Member> contents = page.getContent();
@@ -341,10 +345,12 @@ class MemberRepositoryTest {
         int offset = 0;
         int limit = 3;
 
-        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+        PageRequest pageRequest = PageRequest
+            .of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
 
         //when
-        List<Member> page = memberRepository.findListByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
+        List<Member> page = memberRepository
+            .findListByAge(age, pageRequest); // Slice는 limit에 1개 더 추가해서 결과를 내놓는다!
 
         //then
         assertThat(page).hasSize(3);
@@ -371,7 +377,8 @@ class MemberRepositoryTest {
         int offset = 0;
         int limit = 3;
 
-        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
+        PageRequest pageRequest = PageRequest
+            .of(0, 3, Sort.by(Sort.Direction.DESC, "userName"));// page를 0부터 시작한다!!
 
         //when
         Page<Member> page = memberRepository.findByAge2(age, pageRequest);
@@ -433,7 +440,8 @@ class MemberRepositoryTest {
         //then
         for (Member member : members) {
             System.out.println("member = " + member.getUserName());
-            System.out.println("member.teamClass = " + member.getTeam().getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
+            System.out.println("member.teamClass = " + member.getTeam()
+                .getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
             System.out.println("member.team = " + member.getTeam().getName()); // N + 1 문제가 발생한다!
         }
     }
@@ -452,7 +460,6 @@ class MemberRepositoryTest {
         memberRepository.save(member1);
         memberRepository.save(member2);
 
-
         em.flush();
         em.clear();
 
@@ -462,7 +469,8 @@ class MemberRepositoryTest {
         //then
         for (Member member : members) {
             System.out.println("member = " + member.getUserName());
-            System.out.println("member.teamClass = " + member.getTeam().getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
+            System.out.println("member.teamClass = " + member.getTeam()
+                .getClass()); // proxy 객체! (정확히는 Team$HibernateProxy)
             System.out.println("member.team = " + member.getTeam().getName()); // N + 1 문제가 발생한다!
         }
     }
@@ -496,4 +504,24 @@ class MemberRepositoryTest {
         //then
     }
 
+    @Test
+    void specBasic() {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+        em.flush();
+        em.clear();
+
+        //when
+        Specification<Member> spec = MemberSpec.userName("m1").and(MemberSpec.teamName("teamA"));
+        List<Member> findMembers = memberRepository.findAll(spec);
+
+        //then
+        assertThat(findMembers).hasSize(1);
+    }
 }
